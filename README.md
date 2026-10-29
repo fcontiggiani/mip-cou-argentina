@@ -1,4 +1,4 @@
-# mip-cou-argentina
+# Matriz Insumo-Producto de Aregentina
 
 **Matrices insumo-producto de la Argentina estimadas a partir de los cuadros de oferta y utilización (COU) del INDEC, 2018–2023, en R.**
 
