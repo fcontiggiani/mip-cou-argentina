@@ -8,7 +8,7 @@ La última MIP oficial de la Argentina corresponde a 1997. Desde entonces, el IN
 
 Material elaborado para la asignatura *Cuentas Nacionales* (Contador Público, Universidad Nacional de Río Negro, Sede Atlántica), Unidad 04 — Matriz insumo-producto.
 
-### 📊 [Ver el tablero interactivo de encadenamientos](https://fcontiggiani.github.io/mip-cou-argentina/)
+### 📊 [Ver el tablero interactivo de encadenamientos](https://fcontiggiani.github.io/mip-cou-argentina/docs/index.html)
 
 <a href="https://fcontiggiani.github.io/mip-cou-argentina/">
   <picture>
@@ -221,7 +221,7 @@ La agregación se hace sobre las **transacciones** ($\mathbf{Z}$, $\mathbf{F}$, 
 
 ## Tablero interactivo (GitHub Pages)
 
-**Enlace:** <https://fcontiggiani.github.io/mip-cou-argentina/>
+**Enlace:** <https://fcontiggiani.github.io/mip-cou-argentina/docs/index.html>
 
 La carpeta `docs/` contiene un tablero que grafica el encadenamiento hacia atrás (BL) frente al encadenamiento hacia adelante (FL), con los cuadrantes de la tipología de Hirschman: sectores clave, impulsores, base e independientes. Permite:
 
