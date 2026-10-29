@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "Si usa este software, por favor cítelo como se indica a continuación."
+title: "mip-cou-argentina: matrices insumo-producto de la Argentina a partir de los cuadros de oferta y utilización del INDEC, 2018-2023"
+authors:
+  - family-names: "Contiggiani"
+    given-names: "Federico"
+    affiliation: "Universidad Nacional de Río Negro"
+version: "1.0.0"
+date-released: "2026-10-20"
+license: MIT
+repository-code: "https://github.com/fcontiggiani/mip-cou-argentina"
+url: "https://fcontiggiani.github.io/mip-cou-argentina/"
+keywords:
+  - matriz insumo-producto
+  - cuadros de oferta y utilización
+  - Leontief
+  - Ghosh
+  - encadenamientos
+  - cuentas nacionales
+  - Argentina

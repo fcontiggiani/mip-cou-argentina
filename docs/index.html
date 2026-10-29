@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Encadenamientos MIP Argentina</title>
+<meta name="description" content="Encadenamientos hacia atrás y hacia adelante (Rasmussen-Hirschman y Ghosh) de la economía argentina, 2018-2023, estimados a partir de los cuadros de oferta y utilización del INDEC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+<style>
+  /* Tokens de diseño del tablero: tema claro (por defecto) */
+  :root {
+    --font-anthropic-sans: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-anthropic-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --color-bg: #f6f7f9; --color-panel: #ffffff; --color-fg: #1b2230; --color-fg-muted: #586273;
+    --color-border-line: #dce1e8; --color-bad: #c2410c;
+    --cds-chart-grid: #eceff4; --cds-chart-axis: #a7afbc; --cds-chart-reference: #7a8393;
+    --cds-surface-popover: #ffffff; --cds-border: #d3d9e2; --cds-text-secondary: #586273;
+    --cds-shadow-popover: 0 6px 20px rgba(20, 30, 50, .12);
+    --serie-1: #0072b2; --serie-2: #d55e00; --serie-3: #009e73; --serie-4: #cc79a7; --serie-5: #e69f00; --serie-6: #56b4e9;
+    --cds-gap-xs: .25rem; --cds-gap-sm: .5rem; --cds-gap-md: .75rem; --cds-gap-lg: 1.25rem;
+    --cds-pad-xs: .3rem; --cds-pad-sm: .55rem; --cds-pad-md: .8rem; --cds-pad-lg: 1.1rem;
+    --cds-radius: 8px;
+    --cds-font-size-caption: .8125rem; --cds-font-size-body: .9375rem; --cds-font-size-heading: 1.0625rem; --cds-font-size-title: 1.75rem;
+    --cds-font-weight-medium: 600;
+    --cds-dur-slow: 240ms; --cds-ease-out: cubic-bezier(.2, .7, .2, 1);
+    color-scheme: light;
+  }
+  /* Tema oscuro: según el sistema, salvo elección explícita */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --color-bg: #11151c; --color-panel: #1a2029; --color-fg: #e6e9ef; --color-fg-muted: #9ba4b3;
+      --color-border-line: #2d3541; --color-bad: #fb923c;
+      --cds-chart-grid: #262d38; --cds-chart-axis: #4b5465; --cds-chart-reference: #808a9b;
+      --cds-surface-popover: #212835; --cds-border: #353e4c; --cds-text-secondary: #9ba4b3;
+      --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, .45);
+      --serie-1: #4ea3e0; --serie-2: #f08a4b; --serie-3: #3cc49a; --serie-4: #e29ac4; --serie-5: #f2b84b; --serie-6: #8fd0f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --color-bg: #11151c; --color-panel: #1a2029; --color-fg: #e6e9ef; --color-fg-muted: #9ba4b3;
+    --color-border-line: #2d3541; --color-bad: #fb923c;
+    --cds-chart-grid: #262d38; --cds-chart-axis: #4b5465; --cds-chart-reference: #808a9b;
+    --cds-surface-popover: #212835; --cds-border: #353e4c; --cds-text-secondary: #9ba4b3;
+    --cds-shadow-popover: 0 6px 20px rgba(0, 0, 0, .45);
+    --serie-1: #4ea3e0; --serie-2: #f08a4b; --serie-3: #3cc49a; --serie-4: #e29ac4; --serie-5: #f2b84b; --serie-6: #8fd0f5;
+    color-scheme: dark;
+  }
+  html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); }
+  body { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45;
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 1.5rem 2.5rem; }
+  #dash-root { max-width: 1180px; margin-inline: auto; }
+  .dash-skeleton { background: var(--cds-chart-grid); border-radius: var(--cds-radius); color: transparent !important; }
+  .pie { max-width: 1180px; margin: 1.5rem auto 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .pie a { color: inherit; }
+</style>
+</head>
+<body>
+<style>
+  #dash-root .enc { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+  /* Tema forzado por el interruptor: redefine los tokens dentro del tablero */
+  #dash-root .enc[data-tema] { background: var(--color-bg); color: var(--color-fg); padding: var(--cds-pad-lg); border-radius: var(--cds-radius); transition: background var(--cds-dur-slow), color var(--cds-dur-slow); }
+  #dash-root .enc[data-tema="claro"] { --color-bg: #f6f7f9; --color-panel: #ffffff; --color-fg: #1b2230; --color-fg-muted: #586273; --color-border-line: #dce1e8; --cds-chart-grid: #eceff4; --cds-chart-axis: #a7afbc; --cds-chart-reference: #7a8393; --cds-surface-popover: #ffffff; --cds-border: #d3d9e2; --cds-text-secondary: #586273; color-scheme: light; }
+  #dash-root .enc[data-tema="oscuro"] { --color-bg: #11151c; --color-panel: #1a2029; --color-fg: #e6e9ef; --color-fg-muted: #9ba4b3; --color-border-line: #2d3541; --cds-chart-grid: #262d38; --cds-chart-axis: #4b5465; --cds-chart-reference: #808a9b; --cds-surface-popover: #212835; --cds-border: #353e4c; --cds-text-secondary: #9ba4b3; color-scheme: dark; }
+  #dash-root .enc-switch { font: inherit; font-size: var(--cds-font-size-caption); display: inline-flex; align-items: center; gap: var(--cds-gap-xs); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 3px var(--cds-pad-sm) 3px 3px; color: var(--color-fg); cursor: pointer; }
+  #dash-root .enc-switch:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  #dash-root .enc-switch-track { width: 2.2rem; height: 1.2rem; border-radius: 999px; background: var(--cds-chart-grid); border: 1px solid var(--color-border-line); position: relative; flex: none; }
+  #dash-root .enc-switch-thumb { position: absolute; top: 1px; left: 1px; width: 1rem; height: 1rem; border-radius: 50%; background: var(--color-fg); }
+  #dash-root .enc-switch[aria-checked="true"] .enc-switch-thumb { transform: translateX(1rem); }
+  @media (prefers-reduced-motion: no-preference) { #dash-root .enc-switch-thumb { transition: transform var(--cds-dur-slow) var(--cds-ease-out); } }
+  #dash-root .enc-head { display: grid; gap: var(--cds-gap-xs); }
+  #dash-root .enc-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  #dash-root .enc-lede { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-body); max-width: 72ch; }
+  #dash-root .enc-lede b { font-weight: 600; color: var(--color-fg); font-variant-numeric: tabular-nums; }
+  #dash-root .enc-controls { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: end; }
+  #dash-root .enc-field { display: grid; gap: var(--cds-gap-xs); min-width: 0; }
+  #dash-root .enc-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); letter-spacing: .02em; }
+  #dash-root .enc-select { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); max-width: 100%; }
+  #dash-root .enc-seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; background: var(--color-panel); }
+  #dash-root .enc-seg button { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 0; border-right: 1px solid var(--color-border-line); background: transparent; color: var(--color-fg); cursor: pointer; font-variant-numeric: tabular-nums; }
+  #dash-root .enc-seg button:last-child { border-right: 0; }
+  #dash-root .enc-seg button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); }
+  #dash-root .enc-seg button:disabled { color: var(--color-fg-muted); opacity: .45; cursor: not-allowed; }
+  #dash-root .enc-seg button:focus-visible, #dash-root .enc-select:focus-visible, #dash-root .enc-check input:focus-visible, #dash-root .enc-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  #dash-root .enc-check { display: inline-flex; gap: var(--cds-gap-xs); align-items: center; font-size: var(--cds-font-size-caption); padding-block: var(--cds-pad-xs); }
+  #dash-root .enc-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+  #dash-root .enc-tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); }
+  #dash-root .enc-tile-name { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: flex; gap: var(--cds-gap-xs); align-items: center; }
+  #dash-root .enc-quad { width: .8rem; height: .8rem; display: inline-grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px; }
+  #dash-root .enc-quad i { background: var(--cds-chart-grid); border-radius: 1px; }
+  #dash-root .enc-quad i.on { background: var(--color-fg); }
+  #dash-root .enc-tile-num { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-weight: 400; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  #dash-root .enc-tile-num small { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  #dash-root .enc-tile-def { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  #dash-root .enc-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); min-width: 0; }
+  #dash-root .enc-card-title { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  #dash-root .enc-note { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); max-width: 80ch; }
+  #dash-root .enc-chartbox { position: relative; min-height: 380px; }
+  #dash-root .enc-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  #dash-root .enc-legend span { display: inline-flex; gap: var(--cds-gap-xs); align-items: center; }
+  #dash-root .enc-legend i { width: .65rem; height: .65rem; border-radius: 50%; display: inline-block; }
+  #dash-root .enc-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 18rem; z-index: 2; }
+  #dash-root .enc-tip-head { color: var(--cds-text-secondary); margin-bottom: 2px; }
+  #dash-root .enc-tip-row { display: flex; justify-content: space-between; gap: var(--cds-gap-md); font-variant-numeric: tabular-nums; }
+  #dash-root .enc-picked { font: inherit; font-size: var(--cds-font-size-caption); justify-self: start; padding: 2px var(--cds-pad-sm); border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-bg); color: var(--color-fg); cursor: pointer; max-width: 100%; text-align: left; }
+  #dash-root .enc-search { font: inherit; font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 22rem); }
+  #dash-root .enc-tablebox { max-height: 30rem; overflow: auto; border-top: 1px solid var(--color-border-line); }
+  #dash-root .enc-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  #dash-root .enc-table th { position: sticky; top: 0; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); border-bottom: 1px solid var(--color-border-line); padding: 0; z-index: 1; }
+  #dash-root .enc-table th button { font: inherit; background: none; border: 0; color: var(--color-fg); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; width: 100%; text-align: inherit; }
+  #dash-root .enc-table th.num, #dash-root .enc-table td.num { text-align: right; }
+  #dash-root .enc-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--cds-chart-grid); vertical-align: top; }
+  #dash-root .enc-table tr.is-sel td { background: var(--cds-chart-grid); }
+  #dash-root .enc-table tbody tr { cursor: pointer; }
+  #dash-root .enc-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-width: 12rem; }
+  #dash-root .enc-dot { width: .55rem; height: .55rem; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  #dash-root .enc-hide-narrow { }
+  @media (max-width: 640px) { #dash-root .enc-hide-narrow { display: none; } }
+  #dash-root .enc-method { display: grid; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  #dash-root .enc-method p { margin: 0; max-width: 90ch; }
+  #dash-root .enc-method b { color: var(--color-fg); font-weight: 600; }
+  #dash-root .enc-failed { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 380px; }
+  #dash-root .enc-failed i { width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); display: inline-block; }
+  #dash-root [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  #dash-root [data-dash-source-state=empty] { color: transparent; }
+</style>
+<style>
+  #dash-root .enc[data-tema] { padding: 0; background: transparent; }
+</style>
+<script src="vendor/d3-7.9.0.min.js"></script>
+<script src="datos/encadenamientos_2018_2023.js"></script>
+<script>
+  // Reemplazo mínimo del entorno de tableros de Claude: filtros, datos, cálculos y colores.
+  window.dash = (() => {
+    const inicial = { nivel: 'ramas_107', anio: 2023, enfoque: 'ghosh', log: false, sel: null, tema: null, ciiu: 3 };
+    let params = { ...inicial };
+    const calcs = {}, cache = {}, avisos = [];
+    const aplicarTema = () => {
+      if (params.tema === 'oscuro') document.documentElement.dataset.theme = 'dark';
+      else if (params.tema === 'claro') document.documentElement.dataset.theme = 'light';
+      else delete document.documentElement.dataset.theme;
+    };
+    const data = (id) => {
+      if (id === 'encadenamientos') {
+        return Array.isArray(window.DATOS) ? { status: 'ok', data: window.DATOS } : { status: 'error', data: [] };
+      }
+      if (calcs[id]) {
+        const base = calcs[id].inputs.map((i) => data(i));
+        if (base.some((b) => b.status !== 'ok')) return { status: 'error', data: [] };
+        if (!cache[id]) cache[id] = calcs[id].fn(...base.map((b) => b.data));
+        return { status: 'ok', data: cache[id] };
+      }
+      return { status: 'missing', data: [] };
+    };
+    const correr = () => { aplicarTema(); avisos.forEach((f) => f()); };
+    let ancho = window.innerWidth;
+    window.addEventListener('resize', () => { if (Math.abs(window.innerWidth - ancho) > 2) { ancho = window.innerWidth; correr(); } });
+    return {
+      params: () => ({ ...params }),
+      setParams: (o) => { params = { ...params, ...o }; correr(); },
+      resetParams: () => { params = { ...inicial }; correr(); },
+      data,
+      calc: (id, def) => { calcs[id] = def; },
+      onData: (f) => { avisos.push(f); aplicarTema(); f(); },
+      colors: ['var(--serie-1)', 'var(--serie-2)', 'var(--serie-3)', 'var(--serie-4)', 'var(--serie-5)', 'var(--serie-6)'],
+      setLink: () => {}, refresh: () => {},
+    };
+  })();
+</script>
+<div id="dash-root">
+
+
+<div class="enc">
+  <header class="enc-head" id="resumen">
+    <h1 class="enc-title">Encadenamientos de la economía argentina, 2018–2023</h1>
+    <p class="enc-lede" id="enc-lede">
+      En <span class="enc-l-anio">—</span>, con el enfoque <span class="enc-l-enf">—</span>,
+      <b class="enc-l-clave dash-skeleton" data-source="conteos" data-field="n">—</b> de
+      <b class="enc-l-total dash-skeleton" data-source="conteos" data-field="n">—</b>
+      <span class="enc-l-unid">sectores</span> son <b>clave</b>: compran y venden insumos por encima del promedio.
+    </p>
+  </header>
+
+  <div class="enc-controls" id="controles">
+    <label class="enc-field" for="enc-nivel">
+      <span class="enc-label">Nivel de agregación</span>
+      <select id="enc-nivel" class="enc-select"></select>
+    </label>
+    <div class="enc-field">
+      <span class="enc-label" id="enc-anio-lbl">Año del COU</span>
+      <div class="enc-seg" id="enc-anios" role="group" aria-labelledby="enc-anio-lbl"></div>
+    </div>
+    <div class="enc-field">
+      <span class="enc-label" id="enc-enf-lbl">Encadenamiento hacia adelante</span>
+      <div class="enc-seg" id="enc-enfoques" role="group" aria-labelledby="enc-enf-lbl">
+        <button type="button" data-enfoque="hirschman">Hirschman–Rasmussen (filas de L)</button>
+        <button type="button" data-enfoque="ghosh">Ghosh (filas de G)</button>
+      </div>
+    </div>
+    <label class="enc-check" for="enc-ciiu4"><input type="checkbox" id="enc-ciiu4"> Clasificar ramas según CIIU Rev. 4</label>
+    <label class="enc-check" for="enc-log"><input type="checkbox" id="enc-log"> Escala logarítmica</label>
+    <div class="enc-field">
+      <span class="enc-label" id="enc-tema-lbl">Fondo</span>
+      <button type="button" role="switch" id="enc-tema" class="enc-switch" aria-checked="false" aria-labelledby="enc-tema-lbl">
+        <span class="enc-switch-track" aria-hidden="true"><span class="enc-switch-thumb"></span></span>
+        <span class="enc-switch-txt">Claro</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="enc-tiles" id="tipologia">
+    <div class="enc-tile">
+      <span class="enc-tile-name"><span class="enc-quad" aria-hidden="true"><i></i><i class="on"></i><i></i><i></i></span>Clave</span>
+      <span class="enc-tile-num"><span class="enc-t-n dash-skeleton" data-tipo="clave" data-source="conteos" data-field="n">—</span> <small class="enc-t-pct" data-tipo="clave"></small></span>
+      <span class="enc-tile-def">BL ≥ 1 y FL ≥ 1: arrastran y abastecen.</span>
+    </div>
+    <div class="enc-tile">
+      <span class="enc-tile-name"><span class="enc-quad" aria-hidden="true"><i></i><i></i><i></i><i class="on"></i></span>Impulsores</span>
+      <span class="enc-tile-num"><span class="enc-t-n dash-skeleton" data-tipo="impulsor" data-source="conteos" data-field="n">—</span> <small class="enc-t-pct" data-tipo="impulsor"></small></span>
+      <span class="enc-tile-def">BL ≥ 1 y FL &lt; 1: arrastran a sus proveedores.</span>
+    </div>
+    <div class="enc-tile">
+      <span class="enc-tile-name"><span class="enc-quad" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></span>Base</span>
+      <span class="enc-tile-num"><span class="enc-t-n dash-skeleton" data-tipo="base" data-source="conteos" data-field="n">—</span> <small class="enc-t-pct" data-tipo="base"></small></span>
+      <span class="enc-tile-def">BL &lt; 1 y FL ≥ 1: abastecen a muchos sectores.</span>
+    </div>
+    <div class="enc-tile">
+      <span class="enc-tile-name"><span class="enc-quad" aria-hidden="true"><i></i><i></i><i class="on"></i><i></i></span>Independientes</span>
+      <span class="enc-tile-num"><span class="enc-t-n dash-skeleton" data-tipo="independiente" data-source="conteos" data-field="n">—</span> <small class="enc-t-pct" data-tipo="independiente"></small></span>
+      <span class="enc-tile-def">BL &lt; 1 y FL &lt; 1: poco conectados.</span>
+    </div>
+  </div>
+
+  <section class="enc-card" id="grafico">
+    <h2 class="enc-card-title">Encadenamientos hacia atrás y hacia adelante</h2>
+    <p class="enc-note" id="enc-chart-note">Cada punto es un sector; su tamaño es su participación en el valor bruto de producción. Las líneas punteadas marcan el promedio (1). Haga clic en un punto para ver su trayectoria 2018–2023.</p>
+    <div class="enc-legend" id="enc-legend" data-source="encadenamientos"></div>
+    <button type="button" class="enc-picked" id="enc-picked" hidden></button>
+    <div class="enc-chartbox dash-skeleton" id="enc-chart" data-source="encadenamientos"></div>
+  </section>
+
+  <section class="enc-card" id="tabla">
+    <h2 class="enc-card-title">Sectores del nivel elegido</h2>
+    <p class="enc-note">Ordene con un clic en el encabezado; un clic en una fila marca el sector en el gráfico.</p>
+    <input type="search" id="enc-search" class="enc-search" placeholder="Buscar sector o código" aria-label="Buscar sector o código">
+    <div class="enc-tablebox">
+      <table class="enc-table" id="enc-table" data-source="encadenamientos" data-row-key="id">
+        <thead>
+          <tr>
+            <th data-field="codigo"><button type="button" data-sort="codigo">Código</button></th>
+            <th data-field="sector"><button type="button" data-sort="sector">Sector</button></th>
+            <th data-field="gran_sector" class="enc-hide-narrow" id="enc-th-gs"><button type="button" data-sort="gran_sector">Gran sector</button></th>
+            <th data-field="BL" class="num"><button type="button" data-sort="BL">BL</button></th>
+            <th data-field="FL_ghosh" class="num" id="enc-th-fl"><button type="button" data-sort="FL">FL</button></th>
+            <th data-field="tipo_ghosh" id="enc-th-tipo"><button type="button" data-sort="tipo">Tipo</button></th>
+            <th data-field="vbp_part" class="num enc-hide-narrow"><button type="button" data-sort="vbp_part">% VBP</button></th>
+            <th data-field="mult_prod" class="num enc-hide-narrow"><button type="button" data-sort="mult_prod">Mult. prod.</button></th>
+          </tr>
+        </thead>
+        <tbody id="enc-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="enc-card" id="metodo">
+    <h2 class="enc-card-title">Cómo se calculan</h2>
+    <div class="enc-method">
+      <p><b>Hacia atrás (BL)</b>: suma de la columna <i>j</i> de la inversa de Leontief L = (I − A)<sup>−1</sup>, dividida por el promedio de las sumas de columna. Mide cuánto arrastra el sector como comprador de insumos.</p>
+      <p><b>Hacia adelante, Hirschman–Rasmussen</b>: suma de la fila <i>i</i> de L dividida por el promedio. Supone un aumento simultáneo de 1 peso en la demanda final de todos los sectores. <b>Ghosh</b>: suma de la fila <i>i</i> de G = (I − B)<sup>−1</sup>, con B = x̂<sup>−1</sup>Z (coeficientes de distribución). Es la medida preferida para el sector como proveedor.</p>
+      <p>Los índices son relativos al promedio de cada matriz (promedio = 1): no se comparan entre niveles de agregación. Ramas: MIP rama × rama (modelo D de Eurostat). Productos: MIP producto × producto con tecnología de rama (modelo B); se excluyen los productos sin producción nacional. Flujos domésticos a precios básicos, pesos corrientes de cada año.</p>
+      <p><b>CIIU Rev. 3 o Rev. 4</b>: el INDEC compila los COU en CIIU Rev. 3. Con la casilla marcada, las 107 ramas se reclasifican a su sección principal de la CIIU Rev. 4 y se agregan en 20 secciones o en 6 grandes sectores: agro; industria manufacturera; minería, energía, agua y construcción; comercio, transporte, alojamiento e información; finanzas, inmobiliarias y servicios a empresas; administración pública y otros servicios. Ocho ramas mezclan actividades de dos secciones (edición, informática, reparación y reciclado, servicios complementarios del transporte, otras actividades empresariales, salud, esparcimiento y construcciones agropecuarias) y se asignan a la principal. El COU 2018 reducido solo existe en la Rev. 3.</p>
+      <p>Fuente: INDEC, cuadros de oferta y utilización 2018–2023 y COU 2018 reducido (2021). Elaboración propia con supuestos de proporcionalidad de importaciones y tasas uniformes de márgenes e impuestos por producto.</p>
+    </div>
+  </section>
+</div>
+
+</div>
+
+<footer class="pie">
+  Fuente: elaboración propia sobre INDEC, cuadros de oferta y utilización 2018–2023 y COU 2018 reducido (2021).
+  Datos generados con <code>exportar_encadenamientos.R</code> del proyecto <i>mip-cou-argentina</i>. Código bajo licencia MIT.
+</footer>
+<script>
+  // Conteos de la tipología de Hirschman por nivel, año y enfoque
+  dash.calc('conteos', {
+    title: 'Sectores por tipo',
+    description: 'Cuenta los sectores de cada tipo (clave, impulsor, base, independiente) y el total, por nivel, año y enfoque.',
+    inputs: ['encadenamientos'],
+    fn: (encadenamientos) => {
+      const out = new Map();
+      const add = (nivel, anio, enfoque, tipo) => {
+        const k = [nivel, anio, enfoque, tipo].join('|');
+        const r = out.get(k) || { nivel, anio: Number(anio), enfoque, tipo, n: 0 };
+        r.n += 1; out.set(k, r);
+      };
+      for (const r of encadenamientos) {
+        for (const [enf, col] of [['hirschman', 'tipo_hirschman'], ['ghosh', 'tipo_ghosh']]) {
+          add(r.nivel, r.anio, enf, r[col]);
+          add(r.nivel, r.anio, enf, 'total');
+        }
+      }
+      for (const r of [...out.values()]) {
+        if (r.tipo !== 'total') continue;
+        for (const t of ['clave', 'impulsor', 'base', 'independiente']) {
+          const k = [r.nivel, r.anio, r.enfoque, t].join('|');
+          if (!out.has(k)) out.set(k, { nivel: r.nivel, anio: r.anio, enfoque: r.enfoque, tipo: t, n: 0 });
+        }
+      }
+      return [...out.values()];
+    },
+  });
+</script>
+
+<script>
+  (() => {
+    const loc = d3.formatLocale({ decimal: ',', thousands: '.', grouping: [3], currency: ['$', ''] });
+    const f2 = loc.format('.2f'), f3 = loc.format('.3f'), f1 = loc.format('.1f');
+    const NIVELES = {
+      ramas_107: { unid: 'ramas', anual: true, etiquetas: 0 },
+      ramas_div: { unid: 'divisiones', anual: true, etiquetas: 10 },
+      ramas_5: { unid: 'grandes sectores', anual: true, etiquetas: 99 },
+      productos: { unid: 'productos', anual: true, etiquetas: 0 },
+      productos_secc: { unid: 'secciones', anual: true, etiquetas: 99 },
+      red_ramas: { unid: 'ramas', anual: false, etiquetas: 99 },
+      red_productos: { unid: 'productos', anual: false, etiquetas: 99 },
+      ramas4_secc: { unid: 'secciones', anual: true, etiquetas: 12 },
+      ramas4_6: { unid: 'grandes sectores', anual: true, etiquetas: 99 },
+    };
+    const OPCIONES = {
+      3: [
+        ['Ramas de actividad (CIIU Rev. 3)', [['ramas_107', '107 ramas CIIU'], ['ramas_div', '58 divisiones CIIU Rev. 3'], ['ramas_5', '5 grandes sectores (Rev. 3)']]],
+        ['Productos (MIP producto × producto)', [['productos', 'Productos CPC (≈ 222)'], ['productos_secc', '10 secciones CPC']]],
+        ['COU 2018 reducido del INDEC', [['red_ramas', '5 ramas'], ['red_productos', '10 productos']]],
+      ],
+      4: [
+        ['Ramas de actividad (CIIU Rev. 4)', [['ramas_107', '107 ramas, por sección Rev. 4'], ['ramas4_secc', '20 secciones CIIU Rev. 4'], ['ramas4_6', '6 grandes sectores (Rev. 4)']]],
+        ['Productos (MIP producto × producto)', [['productos', 'Productos CPC (≈ 222)'], ['productos_secc', '10 secciones CPC']]],
+      ],
+    };
+    const A_REV4 = { ramas_div: 'ramas4_secc', ramas_5: 'ramas4_6', red_ramas: 'ramas4_6', red_productos: 'productos_secc' };
+    const A_REV3 = { ramas4_secc: 'ramas_div', ramas4_6: 'ramas_5' };
+    const ANIOS = [2018, 2019, 2020, 2021, 2022, 2023];
+    const ENF = { hirschman: { fl: 'FL_leontief', tipo: 'tipo_hirschman', nombre: 'Hirschman–Rasmussen' }, ghosh: { fl: 'FL_ghosh', tipo: 'tipo_ghosh', nombre: 'de Ghosh' } };
+    const GS3 = ['R1', 'R2', 'R3', 'R4', 'R5'];
+    const GS4 = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6'];
+    let rev4 = false;
+    const gsCampo = () => (rev4 ? 'gran_sector4' : 'gran_sector');
+    const gsDe = (d) => d[gsCampo()] || '';
+    const corto = (s, n = 70) => {
+      const t = String(s);
+      return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t;
+    };
+    const color = (gs) => {
+      const lista = rev4 ? GS4 : GS3;
+      return dash.colors[Math.max(0, lista.indexOf(String(gs).slice(0, 2)))];
+    };
+
+    const $ = (s) => document.querySelector(s);
+    const selNivel = $('#enc-nivel'), segAnios = $('#enc-anios'), segEnf = $('#enc-enfoques');
+    const chk4 = $('#enc-ciiu4');
+    const chk = $('#enc-log'), box = $('#enc-chart'), legend = $('#enc-legend'), picked = $('#enc-picked');
+    const tbody = $('#enc-tbody'), search = $('#enc-search');
+    let sortKey = 'BL', sortDir = -1;
+
+    ANIOS.forEach((a) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = a; b.dataset.anio = a;
+      segAnios.appendChild(b);
+    });
+
+    const P = () => {
+      const p = dash.params();
+      return {
+        nivel: p.nivel || 'ramas_107',
+        anio: Number(p.anio || 2023),
+        enfoque: p.enfoque === 'hirschman' ? 'hirschman' : 'ghosh',
+        log: !!p.log,
+        sel: p.sel || null,
+        tema: p.tema === 'claro' || p.tema === 'oscuro' ? p.tema : null,
+        ciiu: Number(p.ciiu) === 4 ? 4 : 3,
+      };
+    };
+
+    selNivel.addEventListener('change', () => {
+      const anual = NIVELES[selNivel.value].anual;
+      dash.setParams(anual ? { nivel: selNivel.value, sel: null } : { nivel: selNivel.value, anio: 2018, sel: null });
+    });
+    segAnios.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-anio]');
+      if (b && !b.disabled) dash.setParams({ anio: Number(b.dataset.anio) });
+    });
+    segEnf.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-enfoque]');
+      if (b) dash.setParams({ enfoque: b.dataset.enfoque });
+    });
+    chk.addEventListener('change', () => dash.setParams({ log: chk.checked }));
+    chk4.addEventListener('change', () => {
+      const p = P();
+      if (chk4.checked) {
+        const nivel = A_REV4[p.nivel] || p.nivel;
+        dash.setParams({ ciiu: 4, nivel, sel: nivel === p.nivel ? p.sel : null });
+      } else {
+        const nivel = A_REV3[p.nivel] || p.nivel;
+        dash.setParams({ ciiu: 3, nivel, sel: nivel === p.nivel ? p.sel : null });
+      }
+    });
+    let opcionesDe = null;
+    const armarOpciones = (ciiu) => {
+      if (opcionesDe === ciiu) return;
+      opcionesDe = ciiu;
+      selNivel.replaceChildren(...OPCIONES[ciiu].map(([lbl, ops]) => {
+        const g = document.createElement('optgroup'); g.label = lbl;
+        ops.forEach(([v, t]) => g.appendChild(new Option(t, v)));
+        return g;
+      }));
+    };
+    const swTema = $('#enc-tema'), raiz = $('.enc');
+    const mqOscuro = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+    const esOscuro = (p) => p.tema ? p.tema === 'oscuro' : !!(mqOscuro && mqOscuro.matches);
+    swTema.addEventListener('click', () => dash.setParams({ tema: esOscuro(P()) ? 'claro' : 'oscuro' }));
+    picked.addEventListener('click', () => dash.setParams({ sel: null }));
+    search.addEventListener('input', () => drawTable());
+    document.querySelector('#enc-table thead').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-sort]');
+      if (!b) return;
+      const k = b.dataset.sort;
+      sortDir = sortKey === k ? -sortDir : (['codigo', 'sector', 'gran_sector', 'tipo'].includes(k) ? 1 : -1);
+      sortKey = k;
+      drawTable();
+    });
+    tbody.addEventListener('click', (e) => {
+      const tr = e.target.closest('tr[data-codigo]');
+      if (tr) dash.setParams({ sel: P().sel === tr.dataset.codigo ? null : tr.dataset.codigo });
+    });
+
+    let filas = [];
+
+    function drawControls(p, ok) {
+      armarOpciones(p.ciiu);
+      selNivel.value = p.nivel;
+      chk4.checked = p.ciiu === 4;
+      const anual = NIVELES[p.nivel].anual;
+      segAnios.querySelectorAll('button').forEach((b) => {
+        const a = Number(b.dataset.anio);
+        b.disabled = !anual && a !== 2018;
+        b.setAttribute('aria-pressed', String(a === p.anio));
+      });
+      segEnf.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.enfoque === p.enfoque)));
+      chk.checked = p.log;
+      if (p.tema) raiz.dataset.tema = p.tema; else delete raiz.dataset.tema;
+      const oscuro = esOscuro(p);
+      swTema.setAttribute('aria-checked', String(oscuro));
+      swTema.querySelector('.enc-switch-txt').textContent = oscuro ? 'Oscuro' : 'Claro';
+    }
+
+    function drawSummary(p, okConteos) {
+      const where = (t) => `nivel=${p.nivel}&anio=${p.anio}&enfoque=${p.enfoque}&tipo=${t}`;
+      const conteos = okConteos ? dash.data('conteos').data : [];
+      const n = (t) => {
+        const r = conteos.find((c) => c.nivel === p.nivel && Number(c.anio) === p.anio && c.enfoque === p.enfoque && c.tipo === t);
+        return r ? r.n : null;
+      };
+      const total = n('total');
+      const setNum = (el, t) => {
+        el.dataset.where = where(t);
+        const v = n(t);
+        el.textContent = v == null ? '—' : String(v);
+        el.classList.toggle('dash-skeleton', !okConteos);
+      };
+      setNum($('.enc-l-clave'), 'clave');
+      setNum($('.enc-l-total'), 'total');
+      $('.enc-l-anio').textContent = p.anio;
+      $('.enc-l-enf').textContent = ENF[p.enfoque].nombre;
+      $('.enc-l-unid').textContent = NIVELES[p.nivel].unid;
+      document.querySelectorAll('.enc-t-n').forEach((el) => setNum(el, el.dataset.tipo));
+      document.querySelectorAll('.enc-t-pct').forEach((el) => {
+        const v = n(el.dataset.tipo);
+        el.textContent = v != null && total ? `de ${total} · ${f1(100 * v / total)} %` : '';
+      });
+    }
+
+    function drawLegend(rows) {
+      const lista = rev4 ? GS4 : GS3;
+      const presentes = lista.filter((g) => rows.some((r) => gsDe(r).startsWith(g)));
+      legend.replaceChildren(...presentes.map((g) => {
+        const r = rows.find((x) => gsDe(x).startsWith(g));
+        const s = document.createElement('span');
+        const i = document.createElement('i'); i.style.background = color(g);
+        s.append(i, document.createTextNode(gsDe(r).slice(3)));
+        return s;
+      }));
+    }
+
+    function drawChart(p, all) {
+      box.querySelectorAll('svg, .enc-tip, .enc-failed').forEach((n) => n.remove());
+      const enf = ENF[p.enfoque];
+      const rows = all.filter((r) => r.nivel === p.nivel && Number(r.anio) === p.anio);
+      filas = rows;
+      drawLegend(rows);
+      if (!rows.length) return;
+
+      const W = Math.max(280, box.clientWidth);
+      const H = Math.round(Math.min(560, Math.max(360, W * 0.6)));
+      box.style.minHeight = H + 'px';
+      const xs = rows.map((r) => r.BL), ys = rows.map((r) => r[enf.fl]);
+      const pad = (lo, hi, log) => log ? [Math.min(lo, 1) / 1.08, Math.max(hi, 1) * 1.08] : [Math.min(lo, 1) - 0.06 * (hi - lo + 0.1), Math.max(hi, 1) + 0.06 * (hi - lo + 0.1)];
+      const xd = pad(d3.min(xs), d3.max(xs), p.log), yd = pad(d3.min(ys), d3.max(ys), p.log);
+
+      const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img')
+        .attr('aria-label', `Diagrama de dispersión de BL frente a FL (${enf.nombre}), ${p.anio}`);
+      const yTmp = (p.log ? d3.scaleLog().base(2) : d3.scaleLinear()).domain(yd);
+      const ticksY = yTmp.ticks(6).filter((t) => t >= yd[0] && t <= yd[1]);
+      const meas = svg.append('g').attr('font-size', 'var(--cds-font-size-caption)');
+      const widest = d3.max(ticksY.map((t) => { const n = meas.append('text').text(f2(t)); const w = n.node().getComputedTextLength(); n.remove(); return w; })) || 24;
+      meas.remove();
+      const m = { top: 14, right: 14, bottom: 42, left: Math.ceil(widest) + 34 };
+      const x = (p.log ? d3.scaleLog().base(2) : d3.scaleLinear()).domain(xd).range([m.left, W - m.right]);
+      const y = (p.log ? d3.scaleLog().base(2) : d3.scaleLinear()).domain(yd).range([H - m.bottom, m.top]);
+
+      // Cuadrante de sectores clave
+      svg.append('rect').attr('x', x(1)).attr('y', m.top).attr('width', Math.max(0, W - m.right - x(1))).attr('height', Math.max(0, y(1) - m.top))
+        .style('fill', 'var(--cds-chart-grid)').style('opacity', 0.55);
+
+      const nTx = Math.max(3, Math.floor((W - m.left - m.right) / 70));
+      const gx = svg.append('g').attr('transform', `translate(0,${H - m.bottom})`).call(d3.axisBottom(x).ticks(nTx).tickFormat(f2).tickSizeOuter(0));
+      const gy = svg.append('g').attr('transform', `translate(${m.left},0)`).call(d3.axisLeft(y).tickValues(ticksY).tickFormat(f2).tickSizeOuter(0));
+      [gx, gy].forEach((g) => {
+        g.attr('font-size', null).attr('font-family', null);
+        g.selectAll('text').style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)');
+        g.selectAll('line, path').style('stroke', 'var(--cds-chart-axis)');
+      });
+      if (p.log) gx.selectAll('.tick').filter((d, i, n) => n.length > nTx && i % 2 === 1).select('text').remove();
+
+      svg.append('line').attr('x1', x(1)).attr('x2', x(1)).attr('y1', m.top).attr('y2', H - m.bottom)
+        .style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4');
+      svg.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', y(1)).attr('y2', y(1))
+        .style('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4');
+
+      svg.append('text').attr('x', W - m.right).attr('y', H - 8).attr('text-anchor', 'end')
+        .style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('BL: encadenamiento hacia atrás →');
+      svg.append('text').attr('transform', `translate(14,${m.top}) rotate(-90)`).attr('text-anchor', 'end')
+        .style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(`FL ${p.enfoque === 'ghosh' ? '(Ghosh)' : '(Leontief)'} →`);
+
+      const q = svg.append('g').style('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 600);
+      q.append('text').attr('x', W - m.right - 6).attr('y', m.top + 14).attr('text-anchor', 'end').text('Clave');
+      q.append('text').attr('x', W - m.right - 6).attr('y', H - m.bottom - 8).attr('text-anchor', 'end').text('Impulsores');
+      q.append('text').attr('x', m.left + 6).attr('y', m.top + 14).text('Base');
+      q.append('text').attr('x', m.left + 6).attr('y', H - m.bottom - 8).text('Independientes');
+
+      const rmax = rows.length > 100 ? 16 : rows.length > 40 ? 22 : 34;
+      const r = d3.scaleSqrt().domain([0, d3.max(rows, (d) => d.vbp_part) || 1]).range([2.5, rmax]);
+
+      // Trayectoria del sector elegido
+      const selRows = p.sel ? all.filter((d) => d.nivel === p.nivel && d.codigo === p.sel).sort((a, b) => a.anio - b.anio) : [];
+      if (selRows.length > 1) {
+        const ln = d3.line().x((d) => x(d.BL)).y((d) => y(d[enf.fl]));
+        svg.append('path').attr('d', ln(selRows)).style('fill', 'none').style('stroke', 'var(--color-fg)')
+          .attr('stroke-width', 1.5).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').style('opacity', 0.7);
+        const yrs = svg.append('g');
+        selRows.forEach((d) => {
+          yrs.append('circle').attr('cx', x(d.BL)).attr('cy', y(d[enf.fl])).attr('r', 3).style('fill', 'var(--color-fg)');
+          if (Number(d.anio) !== p.anio) {
+            yrs.append('text').attr('x', x(d.BL) + 5).attr('y', y(d[enf.fl]) - 5).text(d.anio)
+              .style('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums');
+          }
+        });
+      }
+
+      const orden = [...rows].sort((a, b) => b.vbp_part - a.vbp_part);
+      const dots = svg.append('g').selectAll('circle').data(orden).join('circle')
+        .attr('cx', (d) => x(d.BL)).attr('cy', (d) => y(d[enf.fl])).attr('r', (d) => r(d.vbp_part))
+        .style('fill', (d) => color(gsDe(d)))
+        .style('fill-opacity', (d) => p.sel && d.codigo !== p.sel ? 0.25 : 0.75)
+        .style('stroke', (d) => d.codigo === p.sel ? 'var(--color-fg)' : 'var(--color-panel)')
+        .attr('stroke-width', (d) => d.codigo === p.sel ? 2 : 1)
+        .style('cursor', 'pointer');
+
+      // Etiquetas sin superposición (por tamaño, de mayor a menor)
+      const maxLab = NIVELES[p.nivel].etiquetas;
+      const cajas = [];
+      const lab = svg.append('g').style('font-size', 'var(--cds-font-size-caption)').style('fill', 'var(--color-fg)');
+      const candidatos = orden.slice(0, maxLab);
+      if (p.sel) { const s = rows.find((d) => d.codigo === p.sel); if (s && !candidatos.includes(s)) candidatos.unshift(s); }
+      candidatos.forEach((d) => {
+        const nombre = corto(String(d.sector).replace(/^[A-Z]\d\s/, ''), 26);
+        const t = lab.append('text').text(nombre);
+        const w = t.node().getComputedTextLength(), h = 12;
+        const cx = x(d.BL), cy = y(d[enf.fl]), rr = r(d.vbp_part);
+        const opciones = [[cx + rr + 3, cy + 4, 'start'], [cx - rr - 3, cy + 4, 'end'], [cx - w / 2, cy - rr - 4, 'start'], [cx - w / 2, cy + rr + 12, 'start']];
+        let ok = false;
+        for (const [tx, ty, anchor] of opciones) {
+          const x0 = anchor === 'end' ? tx - w : tx;
+          const bb = { x0, x1: x0 + w, y0: ty - h + 2, y1: ty + 2 };
+          const dentro = bb.x0 >= m.left && bb.x1 <= W - m.right && bb.y0 >= m.top && bb.y1 <= H - m.bottom;
+          const choca = cajas.some((c) => !(bb.x1 < c.x0 || bb.x0 > c.x1 || bb.y1 < c.y0 || bb.y0 > c.y1));
+          if (dentro && !choca) { t.attr('x', tx).attr('y', ty).attr('text-anchor', anchor); cajas.push(bb); ok = true; break; }
+        }
+        if (!ok) t.remove();
+      });
+
+      const tip = d3.select(box).append('div').attr('class', 'enc-tip').style('opacity', 0);
+      const showTip = (event, d) => {
+        tip.selectAll('*').remove();
+        tip.append('div').attr('class', 'enc-tip-head').text(`${d.codigo} · ${corto(gsDe(d).slice(3), 46)}`);
+        tip.append('div').style('font-weight', 600).style('margin-bottom', '2px').text(corto(d.sector, 110));
+        if (rev4 && d.seccion4 && d.nivel === 'ramas_107') {
+          tip.append('div').attr('class', 'enc-tip-head')
+            .text(`Sección Rev. 4: ${corto(d.seccion4, 60)}${d.correspondencia4 === 'aproximada' ? ' (asignación aproximada)' : ''}`);
+        }
+        const fila = (k, v) => { const rr = tip.append('div').attr('class', 'enc-tip-row'); rr.append('span').text(k); rr.append('span').text(v); };
+        fila('BL', f3(d.BL));
+        fila(`FL ${p.enfoque === 'ghosh' ? 'Ghosh' : 'Leontief'}`, f3(d[enf.fl]));
+        fila('Tipo', d[enf.tipo]);
+        fila('% del VBP', f2(d.vbp_part) + ' %');
+        fila('Mult. producción', f3(d.mult_prod));
+        fila('Mult. valor agregado', f3(d.mult_va));
+        fila('Mult. importaciones', f3(d.mult_imp));
+        const bw = box.clientWidth, [px, py] = d3.pointer(event, box);
+        const tw = tip.node().offsetWidth, th = tip.node().offsetHeight;
+        tip.style('left', Math.max(0, Math.min(bw - tw, px + 12)) + 'px').style('top', Math.max(0, py - th - 10 < 0 ? py + 14 : py - th - 10) + 'px').style('opacity', 1);
+      };
+      dots.on('mousemove', showTip).on('mouseleave', () => tip.style('opacity', 0))
+        .on('click', (event, d) => dash.setParams({ sel: p.sel === d.codigo ? null : d.codigo }));
+
+      const s = rows.find((d) => d.codigo === p.sel);
+      picked.hidden = !s;
+      picked.textContent = s ? `${corto(s.sector, 60)} ×` : '';
+    }
+
+    function drawTable() {
+      const p = P(), enf = ENF[p.enfoque];
+      $('#enc-th-fl').dataset.field = enf.fl;
+      $('#enc-th-gs').dataset.field = gsCampo();
+      $('#enc-th-tipo').dataset.field = enf.tipo;
+      $('#enc-th-fl button').textContent = p.enfoque === 'ghosh' ? 'FL Ghosh' : 'FL Leontief';
+      const q = search.value.trim().toLowerCase();
+      const val = (d, k) => k === 'FL' ? d[enf.fl] : k === 'tipo' ? d[enf.tipo] : k === 'gran_sector' ? gsDe(d) : d[k];
+      const rows = filas.filter((d) => !q || `${d.codigo} ${d.sector}`.toLowerCase().includes(q))
+        .sort((a, b) => {
+          const va = val(a, sortKey), vb = val(b, sortKey);
+          return (typeof va === 'number' ? va - vb : String(va).localeCompare(String(vb), 'es')) * sortDir;
+        });
+      document.querySelectorAll('#enc-table th').forEach((th) => {
+        const k = th.querySelector('button').dataset.sort;
+        th.setAttribute('aria-sort', k === sortKey ? (sortDir > 0 ? 'ascending' : 'descending') : 'none');
+      });
+      tbody.replaceChildren(...rows.map((d) => {
+        const tr = document.createElement('tr');
+        tr.dataset.key = d.id; tr.dataset.codigo = d.codigo;
+        if (d.codigo === p.sel) tr.className = 'is-sel';
+        const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = txt; return c; };
+        const tdName = document.createElement('td');
+        const nm = document.createElement('span'); nm.className = 'enc-name'; nm.textContent = d.sector; tdName.appendChild(nm);
+        const tdGs = document.createElement('td'); tdGs.className = 'enc-hide-narrow';
+        const dot = document.createElement('i'); dot.className = 'enc-dot'; dot.style.background = color(gsDe(d));
+        tdGs.append(dot, document.createTextNode(gsDe(d).slice(3)));
+        tr.append(td(d.codigo), tdName, tdGs, td(f3(d.BL), 'num'), td(f3(d[enf.fl]), 'num'), td(d[enf.tipo]),
+          td(f2(d.vbp_part), 'num enc-hide-narrow'), td(f3(d.mult_prod), 'num enc-hide-narrow'));
+        return tr;
+      }));
+    }
+
+    dash.onData(() => {
+      const p = P();
+      rev4 = p.ciiu === 4;
+      const src = dash.data('encadenamientos');
+      const cnt = dash.data('conteos');
+      drawControls(p);
+      drawSummary(p, cnt.status === 'ok');
+      if (src.status === 'ok') {
+        box.classList.remove('dash-skeleton');
+        drawChart(p, src.data);
+        drawTable();
+      } else {
+        box.querySelectorAll('svg, .enc-tip').forEach((n) => n.remove());
+        filas = [];
+        drawTable();
+        if (src.status === 'error') {
+          box.classList.remove('dash-skeleton');
+          if (!box.querySelector('.enc-failed')) {
+            const fdiv = document.createElement('div'); fdiv.className = 'enc-failed';
+            const i = document.createElement('i'); fdiv.append(i, document.createTextNode('No se pudieron cargar los datos (falta datos/encadenamientos_2018_2023.js)'));
+            box.appendChild(fdiv);
+          }
+        } else {
+          box.classList.add('dash-skeleton');
+        }
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

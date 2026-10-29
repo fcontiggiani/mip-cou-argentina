@@ -1,0 +1,29 @@
+# --- R ---
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+.Ruserdata
+
+# --- renv: se versiona renv.lock, no la biblioteca ---
+renv/library/
+renv/local/
+renv/staging/
+
+# --- Datos del INDEC: se descargan, no se versionan ---
+datos/COU/*.xls
+datos/COU/*.xlsx
+
+# --- Salidas intermedias (se versionan solo los .xlsx, .json y .csv principales) ---
+salidas/*_A_coef_tecnicos.csv
+salidas/*_L_inversa_Leontief.csv
+salidas/*_MIP.csv
+salidas/*_multiplicadores.csv
+salidas/*_encadenamientos.csv
+salidas/*_notas.csv
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
