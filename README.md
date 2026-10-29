@@ -1,6 +1,6 @@
-# Matrices insumo-producto de la Argentina estimadas a partir de los cuadros de oferta y utilización (COU)
+# Matrices insumo-producto de Argentina
 
-**Fuente de datos: Estimación a partir de los cuadros de oferta y utilización (COU)INDEC, 2018–2023, con R**
+**Fuente de datos: Estimación a partir de los cuadros de oferta y utilización (COU) INDEC, 2018–2023, con R**
 
 El proyecto transforma los COU publicados por el INDEC en **matrices insumo-producto (MIP) simétricas de flujos domésticos a precios básicos**. Con esas matrices calcula los coeficientes técnicos $\mathbf{A}$, la inversa de Leontief $\mathbf{L}=(\mathbf{I}-\mathbf{A})^{-1}$, multiplicadores (producción, valor agregado, importaciones e impuestos) y encadenamientos hacia atrás y hacia adelante (Rasmussen–Hirschman y Ghosh). Trabaja con varios niveles de agregación de ramas y de productos, y permite reclasificar las ramas de la CIIU Rev. 3 (la del INDEC) a la CIIU Rev. 4.
 
